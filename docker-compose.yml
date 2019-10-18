@@ -1,0 +1,36 @@
+---
+version: '3'
+
+networks:
+  service-tester:
+    driver: bridge
+
+services:
+  test:
+    image: node:8.6-alpine
+    command:  npm test
+    environment:
+    - VAULT_ADDR=http://vault:8200
+    - VAULT_TOKEN=root
+    command:  npm test
+    working_dir: /service-tester
+    depends_on:
+    - vault
+    volumes:
+    - $PWD:/service-tester
+    networks:
+    - service-tester
+
+  vault:
+    image: vault:1.2.3
+    volumes:
+      - $PWD/test/config:/tmp/config
+      - $PWD/logs/:/tmp/logs
+    command: server -dev -dev-root-token-id="root"
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - "8200:8200"
+    networks:
+    - service-tester
+
